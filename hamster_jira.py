@@ -136,7 +136,8 @@ def update_jira_worklog(
         vprint(f"Worklogs for issue {issue_key} are in sync")
     else:
         if verbose:
-            display(df)
+            vprint(f"Dataframe : {len(df)}")
+            vprint(df)
         vprint(day.strftime("%a %m %d"))
         vprint("Jira : ", t_jira)
         vprint("Hamster : ", t_hamster)
