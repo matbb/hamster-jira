@@ -6,11 +6,12 @@ import argparse
 import sys
 import datetime
 import dateutil
-
-assert dotenv.load_dotenv(".env")
-
-import pandas as pd
 from jira import JIRA
+import pandas as pd
+import warnings
+
+warnings.simplefilter(action="ignore", category=pd.errors.PerformanceWarning)
+
 
 # Program arguments
 parser = argparse.ArgumentParser(
@@ -171,6 +172,8 @@ def update_jira_worklog(
 
 
 if __name__ == "__main__":
+    if dotenv.load_dotenv(".env"):
+        print("Succeeded in loading .env")
     args = parser.parse_args()
     if args.dry_run:
         print("Dry run: just printing what would be done")
@@ -197,8 +200,10 @@ if __name__ == "__main__":
     jira_username = os.environ.get("JIRA_USERNAME", None) or args.jira_username
     jira_api_token = os.environ.get("JIRA_API_TOKEN", None) or args.jira_api_token
 
-    if None in { jira_server_url, jira_username, jira_api_token }:
-        print("Error: jira server url, username and api_token have to be provided either through .env or command line")
+    if None in {jira_server_url, jira_username, jira_api_token}:
+        print(
+            "Error: jira server url, username and api_token have to be provided either through .env or command line"
+        )
         sys.exit(1)
     jira = JIRA(
         server=jira_server_url,
@@ -222,6 +227,7 @@ if __name__ == "__main__":
     )
 
     print("Initialization ok")
+    print("Synchronizing worklogs from ", dt_cutoff, " onwards")
 
     jira_user_id = jira.current_user()
     if args.projects:
@@ -361,11 +367,13 @@ if __name__ == "__main__":
             )
         )
 
+        days_worklogs_with_no_projects = []
         for project, issue_number in pi_list:
             if args.verbose:
                 print(f"Updating worklogs for {project}-{issue_number}")
             if project == "__NA__":
                 print(f"FOUND WORKLOG WITH NO PROJECT ASSIGNED: day = ", day)
+                days_worklogs_with_no_projects.append(day)
                 continue
             t = update_jira_worklog(
                 jira=jira,
@@ -383,3 +391,10 @@ if __name__ == "__main__":
         print("\n" * 5)
         print(f"ATTENTION: {len(df)} WORKLOG ITEMS HAS NO PROJECT ASSIGNED:")
         print(df)
+    else:
+        print("It seems like we could match worklogs to projects everywhere")
+    if len(days_worklogs_with_no_projects):
+        print("!!! ON SOME DAYS THERE ARE WORKLOGS WITH NO PROJECTS ASSIGNED !!!")
+        print(days_worklogs_with_no_projects)
+
+    print("Synchronization of worklogs since ", dt_cutoff, " is finished")
