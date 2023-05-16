@@ -144,7 +144,7 @@ def update_jira_worklog(
         vprint("Jira : ", t_jira)
         vprint("Hamster : ", t_hamster)
         vprint("Times differ")
-        tz_local = df_hamster["start_time"].iloc[0].tz
+        tz_local = df_all["start_time"].iloc[0].tz
         for w_id in df_jira["log_id"].tolist():
             vprint(f"Deleting worklog {w_id} in jira issue {issue_number}")
             if not dry_run:
@@ -341,7 +341,7 @@ if __name__ == "__main__":
 
     df_all = pd.concat((df_hamster, df_jira), ignore_index=True)
     if args.first_day:
-        print("Removing worklogs from time before ", args.first_day)
+        print("Not considering worklogs from time before ", args.first_day)
         df_all.drop(
             df_all.loc[df_all["day"] < args.first_day].index,
             inplace=True,
@@ -355,6 +355,10 @@ if __name__ == "__main__":
     #     print(issue.key, issue.get_field("summary"))
 
     for day in sorted(df_all["day"].unique()):
+        if args.verbose:
+            print()
+            print(f"Updating worklogs at {str(day)}")
+
         df = df_all.loc[df_all["day"] == day]
         pi_list = sorted(
             set(
