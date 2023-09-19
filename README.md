@@ -11,7 +11,7 @@ Synces worklogs from last X days from hamster time tracker to Jira.
 - final summary lists all worklogs that could not be matched to Jira tickets 
 - if in doubt, try with `--dry-run`
 
-```bash
+```
 $ python3 hamster_jira.py --help
 Succeeded in loading .env
 usage: use "hamster_jira.py --help" for more information
@@ -42,7 +42,7 @@ optional arguments:
 ```
 
 Usage:
-```bash
+```
 $ python3 hamster_jira.py --max-days-past=7 --verbose
 ```
 will sync your worklogs from past 7 days into Jira.
